@@ -1270,16 +1270,13 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
     // is binary? then read the header
     std::vector<char> sceneData;
     if (isBinary) {
-        SetAsBinary(); // also creates the body buffer
         ReadBinaryHeader(*stream, sceneData);
     }
     else {
         mSceneLength = stream->FileSize();
         mBodyLength = 0;
 
-
         // read the scene data
-
         sceneData.resize(mSceneLength + 1);
         sceneData[mSceneLength] = '\0';
 
@@ -1298,7 +1295,7 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
         char buffer[32];
         ai_snprintf(buffer, 32, "%d", static_cast<int>(doc.GetErrorOffset()));
         throw DeadlyImportError(std::string("GLTF: JSON parse error, offset ") + buffer + ": "
-            + GetParseError_En(doc.GetParseError()));
+                                + GetParseError_En(doc.GetParseError()));
     }
 
     if (!doc.IsObject()) {
@@ -1307,6 +1304,7 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
 
     // Fill the buffer instance for the current file embedded contents
     if (mBodyLength > 0) {
+        SetAsBinary(); // also creates the body buffer
         if (!mBodyBuffer->LoadFromStream(*stream, mBodyLength, mBodyOffset)) {
             throw DeadlyImportError("GLTF: Unable to read gltf file");
         }
@@ -1322,6 +1320,17 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
         mDicts[i]->AttachToDocument(doc);
     }
 
+    //
+    // Read any buffers included in the JSON section
+    //
+    if (Value* bufferArray = FindArray(doc, "buffers"))
+    {
+        for (unsigned int j = 0; j < bufferArray->Size(); ++j)
+        {
+            buffers.Retrieve(j);
+        }
+    }
+
     // Read the "scene" property, which specifies which scene to load
     // and recursively load everything referenced by it
     if (Value* scene = FindUInt(doc, "scene")) {
@@ -1333,11 +1342,11 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
     }
 
 
-	if (Value* animsArray = FindArray(doc, "animations")) {
-		for (unsigned int i = 0; i < animsArray->Size(); ++i) {
-			animations.Retrieve(i);
-		}
-	}
+    if (Value* animsArray = FindArray(doc, "animations")) {
+        for (unsigned int i = 0; i < animsArray->Size(); ++i) {
+            animations.Retrieve(i);
+        }
+    }
 
     // Clean up
     for (size_t i = 0; i < mDicts.size(); ++i) {
