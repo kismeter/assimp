@@ -1,4 +1,3 @@
-ANDROID_SDK=~/Android/Sdk
 NDKROOT=$ANDROID_SDK/ndk-bundle
 $ANDROID_SDK/cmake/3.6.4111459/bin/cmake --trace -G "Unix Makefiles" \
 	-DCMAKE_MAKE_PROGRAM=$NDKROOT/prebuilt/linux-x86_64/bin/make \
@@ -8,6 +7,7 @@ $ANDROID_SDK/cmake/3.6.4111459/bin/cmake --trace -G "Unix Makefiles" \
 	-DANDROID_NATIVE_API_LEVEL=android-22 \
 	-DANDROID_FORCE_ARM_BUILD=TRUE \
 	-DCMAKE_INSTALL_PREFIX=install \
+	-DANDROID_TOOLCHAIN_NAME=aarch64-linux-android-4.9 \
 	-DANDROID_STL=c++_shared \
 	-DANDROID_STL_FORCE_FEATURES=ON \
 	-DCMAKE_TOOLCHAIN_FILE=$NDKROOT/build/cmake/android.toolchain.cmake \
