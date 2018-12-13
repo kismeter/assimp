@@ -7,6 +7,7 @@ cmake --trace  -G "MinGW Makefiles" \
 	-DCMAKE_INSTALL_PREFIX=install \
 	-DANDROID_STL=c++_shared \
 	-DANDROID_STL_FORCE_FEATURES=ON \
+	-DASSIMP_BUILD_TESTS=OFF \
 	-DANDROID_TOOLCHAIN_NAME=aarch64-linux-android-4.9 \
 	-DCMAKE_TOOLCHAIN_FILE=$NDKROOT/build/cmake/android.toolchain.cmake \
 	-DANDROID_TOOLCHAIN=clang

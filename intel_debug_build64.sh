@@ -5,6 +5,7 @@ $ANDROID_SDK/cmake/3.6.4111459/bin/cmake --trace -G "Unix Makefiles" \
 	-DANDROID_LINKER_FLAGS=-Wl,--exclude-libs,libunwind.a  \
 	-DCMAKE_BUILD_TYPE=Debug \
 	-DANDROID_ABI=x86_64 \
+	-DASSIMP_BUILD_TESTS=OFF \
 	-DANDROID_NATIVE_API_LEVEL=android-22 \
 	-DCMAKE_INSTALL_PREFIX=install \
 	-DANDROID_STL=c++_shared \

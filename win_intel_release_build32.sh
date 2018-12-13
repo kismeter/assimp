@@ -7,6 +7,7 @@ cmake --trace  -G "MinGW Makefiles" \
 	-DANDROID_STL=c++_shared \
 	-DANDROID_TOOLCHAIN_NAME=x86-4.9 \
 	-DANDROID_STL_FORCE_FEATURES=ON \
+	-DASSIMP_BUILD_TESTS=OFF \
 	-DCMAKE_TOOLCHAIN_FILE=$NDKROOT/build/cmake/android.toolchain.cmake \
 	-DANDROID_TOOLCHAIN=clang
 $NDKROOT/prebuilt/windows-x86_64/bin/make.exe -j12
