@@ -606,7 +606,17 @@ SET( PostProcessing_SRCS
 )
 SOURCE_GROUP( PostProcessing FILES ${PostProcessing_SRCS})
 
-SET( IrrXML_SRCS ${HEADER_PATH}/irrXMLWrapper.h )
+#SET( IrrXML_SRCS ${HEADER_PATH}/irrXMLWrapper.h )
+SET( IrrXML_SRCS
+  ../contrib/irrXML/CXMLReaderImpl.h
+  ../contrib/irrXML/heapsort.h
+  ../contrib/irrXML/irrArray.h
+  ../contrib/irrXML/irrString.h
+  ../contrib/irrXML/irrTypes.h
+  ../contrib/irrXML/irrXML.cpp
+  ../contrib/irrXML/irrXML.h
+)
+
 SOURCE_GROUP( IrrXML FILES ${IrrXML_SRCS})
 
 ADD_ASSIMP_IMPORTER( Q3D
@@ -790,6 +800,7 @@ SET( ziplib_SRCS
 
 SOURCE_GROUP( ziplib FILES ${ziplib_SRCS} )
 
+
 SET ( openddl_parser_SRCS
   ../contrib/openddlparser/code/OpenDDLParser.cpp
   ../contrib/openddlparser/code/DDLNode.cpp
@@ -930,7 +941,7 @@ TARGET_INCLUDE_DIRECTORIES ( assimp PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
 )
 
-TARGET_LINK_LIBRARIES(assimp ${ZLIB_LIBRARIES} ${OPENDDL_PARSER_LIBRARIES} ${IRRXML_LIBRARY} )
+TARGET_LINK_LIBRARIES(assimp ${ZLIB_LIBRARIES_LINKED} ${OPENDDL_PARSER_LIBRARIES}  )
 
 if(ANDROID AND ASSIMP_ANDROID_JNIIOSYSTEM)
   set(ASSIMP_ANDROID_JNIIOSYSTEM_PATH port/AndroidJNI)

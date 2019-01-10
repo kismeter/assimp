@@ -88,7 +88,7 @@ macro(get_debug_names PREFIX)
   endforeach(i)
 endmacro(get_debug_names)
 
-# Add the parent dir from DIR to VAR
+# Add the parent dir from DIR to VAR 
 macro(add_parent_dir VAR DIR)
   get_filename_component(${DIR}_TEMP "${${DIR}}/.." ABSOLUTE)
   set(${VAR} ${${VAR}} ${${DIR}_TEMP})
@@ -130,7 +130,6 @@ MACRO(findpkg_framework fwk)
       /System/Library/Frameworks
       /Network/Library/Frameworks
       /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks/
-      /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks/
     )
     FOREACH(dir ${${fwk}_FRAMEWORK_PATH})
       SET(fwkpath ${dir}/${fwk}.framework)

@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Header files, Assimp
 #include <assimp/DefaultLogger.hpp>
 
+
 using namespace Assimp;
 
 namespace glTF2 {
@@ -948,6 +949,87 @@ namespace {
     }
 }
 
+#ifdef GVRF_ASSIMP
+inline void Animation::Read(Value& pJSON_Object, Asset& pAsset_Root)
+{
+
+    if(Value* samplers = FindArray(pJSON_Object, "samplers")) {
+        this->Samplers.resize(samplers->Size());
+
+        for(unsigned int i = 0; i < samplers->Size(); ++ i) {
+            Value& sampler = (*samplers)[i];
+            AnimSampler *samp = &(this->Samplers[i]);
+
+            //get the sampler index
+            samp->id = i;
+
+            //get the time stamps pointed to by the accessor
+            if(Value * input = FindUInt(sampler, "input")) {
+                samp->TIME = pAsset_Root.accessors.Retrieve(input->GetUint());
+            }
+
+            //get the string describing the interpolation type
+            ReadMember(sampler, "interpolation", samp->interpolation );
+
+            //get the buffer pointing to the animation attribute values over each of the time stamps
+            if(Value * output = FindUInt(sampler, "output")) {
+                samp->output = pAsset_Root.accessors.Retrieve(output->GetUint());
+            }
+        }
+    }
+
+
+    if(Value* channels = FindArray(pJSON_Object, "channels"))
+    {
+        
+        this->Channels.resize(channels->Size());
+        for(unsigned int i = 0; i < channels->Size(); ++i)
+        {
+            Value& channel = (*channels)[i];
+            AnimChannel *animChannel = &(this->Channels[i]);
+
+            //get sampler index
+            ReadMember(channel, "sampler", animChannel->sampler );
+
+            if (Value* target_attrbs = FindObject(channel, "target")) {
+
+                if (Value* nodeIdx = FindUInt(*target_attrbs, "node")) {
+                    animChannel->target.node = pAsset_Root.nodes.Retrieve((*nodeIdx).GetUint());
+                }
+
+                if (Value* pathVal = FindString(*target_attrbs, "path")) {
+                    animChannel->target.path =(*pathVal).GetString();
+                }
+            }
+        }
+    }
+
+}
+
+inline void Skin::Read(Value& pJSON_Object, Asset& pAsset_Root)
+{
+    if (Value* name = FindMember(pJSON_Object, "name")) {
+        this->name = name->GetString();
+    }
+
+    if(Value * ibm = FindUInt(pJSON_Object, "inverseBindMatrices")) {
+        this->inverseBindMatrices = pAsset_Root.accessors.Retrieve(ibm->GetUint());
+    }
+
+    if (Value* joints = FindArray(pJSON_Object, "joints")) {
+        for(unsigned int i = 0; i < joints->Size(); ++ i )
+        {
+            if (!(*joints)[i].IsUint()) continue;
+            Ref<Node> node = pAsset_Root.nodes.Retrieve((*joints)[i].GetUint());
+            if(node)
+                this->jointNames.push_back(node);
+        }
+    }
+    //todo: read in skeleten attribute?
+}
+#endif
+
+
 inline void Mesh::Read(Value& pJSON_Object, Asset& pAsset_Root)
 {
     if (Value* name = FindMember(pJSON_Object, "name")) {
@@ -1021,6 +1103,8 @@ inline void Mesh::Read(Value& pJSON_Object, Asset& pAsset_Root)
     }
 }
 
+
+
 inline void Camera::Read(Value& obj, Asset& /*r*/)
 {
     std::string type_string = std::string(MemberOrDefault(obj, "type", "perspective"));
@@ -1091,6 +1175,10 @@ inline void Node::Read(Value& obj, Asset& r)
         this->camera = r.cameras.Retrieve(camera->GetUint());
         if (this->camera)
             this->camera->id = this->id;
+    }
+
+    if (Value* skin = FindUInt(obj, "skin")) {
+        this->skin = r.skins.Retrieve(skin->GetUint());
     }
 }
 
@@ -1253,29 +1341,38 @@ inline void Asset::ReadBinaryHeader(IOStream& stream, std::vector<char>& sceneDa
     }
 
     uint32_t padding = ((chunk.chunkLength + 3) & ~3) - chunk.chunkLength;
-    if (padding > 0) {
-        stream.Seek(padding, aiOrigin_CUR);
-    }
-
     AI_SWAP4(header.length);
-    mBodyOffset = 12 + 8 + chunk.chunkLength + padding + 8;
+    mBodyOffset = sizeof(GLB_Header) + 2 * sizeof(GLB_Chunk) + chunk.chunkLength;
     if (header.length >= mBodyOffset) {
-        if (stream.Read(&chunk, sizeof(chunk), 1) != 1) {
-            throw DeadlyImportError("GLTF: Unable to read BIN chunk");
+        if (!ReadBinaryChunk(stream)) {
+            if (padding > 0) {
+                stream.Seek(padding - sizeof(GLB_Chunk), aiOrigin_CUR);
+                mBodyOffset += padding;
+                if (!ReadBinaryChunk(stream)) {
+                    throw DeadlyImportError("GLTF: Unable to read BIN chunk");
+                }
+            }
         }
-
-        AI_SWAP4(chunk.chunkLength);
-        AI_SWAP4(chunk.chunkType);
-
-        if (chunk.chunkType != ChunkType_BIN) {
-            throw DeadlyImportError("GLTF: BIN chunk missing");
-        }
-
-        mBodyLength = chunk.chunkLength;
     }
     else {
         mBodyOffset = mBodyLength = 0;
     }
+}
+
+inline bool Asset::ReadBinaryChunk(IOStream& stream)
+{
+    GLB_Chunk chunk;
+
+    if (stream.Read(&chunk, sizeof(chunk), 1) != 1) {
+        throw DeadlyImportError("GLTF: Unable to read BIN chunk");
+    }
+    AI_SWAP4(chunk.chunkLength);
+    AI_SWAP4(chunk.chunkType);
+    if (chunk.chunkType != ChunkType_BIN) {
+        return false;
+    }
+    mBodyLength = chunk.chunkLength;
+    return true;
 }
 
 inline void Asset::Load(const std::string& pFile, bool isBinary)
@@ -1292,16 +1389,13 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
     // is binary? then read the header
     std::vector<char> sceneData;
     if (isBinary) {
-        SetAsBinary(); // also creates the body buffer
         ReadBinaryHeader(*stream, sceneData);
     }
     else {
         mSceneLength = stream->FileSize();
         mBodyLength = 0;
 
-
         // read the scene data
-
         sceneData.resize(mSceneLength + 1);
         sceneData[mSceneLength] = '\0';
 
@@ -1320,7 +1414,7 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
         char buffer[32];
         ai_snprintf(buffer, 32, "%d", static_cast<int>(doc.GetErrorOffset()));
         throw DeadlyImportError(std::string("GLTF: JSON parse error, offset ") + buffer + ": "
-            + GetParseError_En(doc.GetParseError()));
+                                + GetParseError_En(doc.GetParseError()));
     }
 
     if (!doc.IsObject()) {
@@ -1329,6 +1423,7 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
 
     // Fill the buffer instance for the current file embedded contents
     if (mBodyLength > 0) {
+        SetAsBinary(); // also creates the body buffer
         if (!mBodyBuffer->LoadFromStream(*stream, mBodyLength, mBodyOffset)) {
             throw DeadlyImportError("GLTF: Unable to read gltf file");
         }
@@ -1342,6 +1437,17 @@ inline void Asset::Load(const std::string& pFile, bool isBinary)
     // Prepare the dictionaries
     for (size_t i = 0; i < mDicts.size(); ++i) {
         mDicts[i]->AttachToDocument(doc);
+    }
+
+    //
+    // Read any buffers included in the JSON section
+    //
+    if (Value* bufferArray = FindArray(doc, "buffers"))
+    {
+        for (unsigned int j = 0; j < bufferArray->Size(); ++j)
+        {
+            buffers.Retrieve(j);
+        }
     }
 
     // Read the "scene" property, which specifies which scene to load
