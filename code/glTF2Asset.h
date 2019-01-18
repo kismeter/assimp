@@ -49,6 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #ifndef GLTF2ASSET_H_INC
 #define GLTF2ASSET_H_INC
+#define GVRF_ASSIMP 1
 
 #ifndef ASSIMP_BUILD_NO_GLTF_IMPORTER
 
@@ -875,67 +876,33 @@ namespace glTF2
         void Read(Value& obj, Asset& r);
     };
 
-#ifdef GVRF_ANIMATION
-    struct Skin : public Object
-    {
-        Nullable<mat4> bindShapeMatrix;       //!< Floating-point 4x4 transformation matrix stored in column-major order.
-        Ref<Accessor> inverseBindMatrices;    //!< The ID of the accessor containing the floating-point 4x4 inverse-bind matrices.
-        std::vector<Ref<Node>> jointNames;    //!< Joint names of the joints (nodes with a jointName property) in this skin.
-        std::string name;                     //!< The user-defined name of this object.
-
-        Skin() {}
-        void Read(Value& obj, Asset& r);
-    };
-	
-	struct Animation : public Object
+#ifdef GVRF_ASSIMP
+    struct Animation : public Object
     {
         struct AnimSampler {
-            std::string id;               //!< The ID of this sampler.
-            std::string input;            //!< The ID of a parameter in this animation to use as key-frame input.
-            std::string interpolation;    //!< Type of interpolation algorithm to use between key-frames.
-            std::string output;           //!< The ID of a parameter in this animation to use as key-frame output.
+            int id;                         //!< The index of this sampler.
+            Ref<Accessor> TIME;            //!< The ID of a parameter in this animation to use as key-frame input.
+            std::string interpolation;      //!< Type of interpolation algorithm to use between key-frames.
+            Ref<Accessor> output;           //!< The ID of a parameter in this animation to use as key-frame output.
         };
 
         struct AnimChannel {
-            std::string sampler;         //!< The ID of one sampler present in the containing animation's samplers property.
+            int sampler;                 //!< The index of a sampler in the containing animation's samplers property.
 
             struct AnimTarget {
-                Ref<Node> id;            //!< The ID of the node to animate.
+                Ref<Node> node;          //!< The node to animate.
                 std::string path;        //!< The name of property of the node to animate ("translation", "rotation", or "scale").
             } target;
         };
 
-        struct AnimParameters {
-            Ref<Accessor> TIME;           //!< Accessor reference to a buffer storing a array of floating point scalar values.
-            Ref<Accessor> rotation;       //!< Accessor reference to a buffer storing a array of four-component floating-point vectors.
-            Ref<Accessor> scale;          //!< Accessor reference to a buffer storing a array of three-component floating-point vectors.
-            Ref<Accessor> translation;    //!< Accessor reference to a buffer storing a array of three-component floating-point vectors.
-        };
-
-        // AnimChannel Channels[3];            //!< Connect the output values of the key-frame animation to a specific node in the hierarchy.
-        // AnimParameters Parameters;          //!< The samplers that interpolate between the key-frames.
-        // AnimSampler Samplers[3];            //!< The parameterized inputs representing the key-frame data.
-
         std::vector<AnimChannel> Channels;            //!< Connect the output values of the key-frame animation to a specific node in the hierarchy.
-        AnimParameters Parameters;                    //!< The samplers that interpolate between the key-frames.
         std::vector<AnimSampler> Samplers;         //!< The parameterized inputs representing the key-frame data.
 
         Animation() {}
         void Read(Value& obj, Asset& r);
     };
-	
-#else
-	 struct Skin : public Object
-    {
-        Nullable<mat4> bindShapeMatrix;       //!< Floating-point 4x4 transformation matrix stored in column-major order.
-        Ref<Accessor> inverseBindMatrices;    //!< The ID of the accessor containing the floating-point 4x4 inverse-bind matrices.
-        std::vector<Ref<Node>> jointNames;    //!< Joint names of the joints (nodes with a jointName property) in this skin.
-        std::string name;                     //!< The user-defined name of this object.
 
-        Skin() {}
-        void Read(Value& obj, Asset& r);
-    };
-	
+#else
     struct Animation : public Object
     {
         struct Sampler {
@@ -967,6 +934,17 @@ namespace glTF2
         void Read(Value& obj, Asset& r);
     };
 #endif
+
+    struct Skin : public Object
+    {
+        Nullable<mat4> bindShapeMatrix;       //!< Floating-point 4x4 transformation matrix stored in column-major order.
+        Ref<Accessor> inverseBindMatrices;    //!< The ID of the accessor containing the floating-point 4x4 inverse-bind matrices.
+        std::vector<Ref<Node>> jointNames;    //!< Joint names of the joints (nodes with a jointName property) in this skin.
+        std::string name;                     //!< The user-defined name of this object.
+
+        Skin() {}
+        void Read(Value& obj, Asset& r);
+    };
 
     //! Base class for LazyDict that acts as an interface
     class LazyDictBase

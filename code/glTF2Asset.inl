@@ -960,85 +960,6 @@ namespace {
     }
 }
 
-#ifdef GVRF_ASSIMP
-inline void Animation::Read(Value& pJSON_Object, Asset& pAsset_Root)
-{
-
-    if(Value* samplers = FindArray(pJSON_Object, "samplers")) {
-        this->Samplers.resize(samplers->Size());
-
-        for(unsigned int i = 0; i < samplers->Size(); ++ i) {
-            Value& sampler = (*samplers)[i];
-            AnimSampler *samp = &(this->Samplers[i]);
-
-            //get the sampler index
-            samp->id = i;
-
-            //get the time stamps pointed to by the accessor
-            if(Value * input = FindUInt(sampler, "input")) {
-                samp->TIME = pAsset_Root.accessors.Retrieve(input->GetUint());
-            }
-
-            //get the string describing the interpolation type
-            ReadMember(sampler, "interpolation", samp->interpolation );
-
-            //get the buffer pointing to the animation attribute values over each of the time stamps
-            if(Value * output = FindUInt(sampler, "output")) {
-                samp->output = pAsset_Root.accessors.Retrieve(output->GetUint());
-            }
-        }
-    }
-
-
-    if(Value* channels = FindArray(pJSON_Object, "channels"))
-    {
-        
-        this->Channels.resize(channels->Size());
-        for(unsigned int i = 0; i < channels->Size(); ++i)
-        {
-            Value& channel = (*channels)[i];
-            AnimChannel *animChannel = &(this->Channels[i]);
-
-            //get sampler index
-            ReadMember(channel, "sampler", animChannel->sampler );
-
-            if (Value* target_attrbs = FindObject(channel, "target")) {
-
-                if (Value* nodeIdx = FindUInt(*target_attrbs, "node")) {
-                    animChannel->target.node = pAsset_Root.nodes.Retrieve((*nodeIdx).GetUint());
-                }
-
-                if (Value* pathVal = FindString(*target_attrbs, "path")) {
-                    animChannel->target.path =(*pathVal).GetString();
-                }
-            }
-        }
-    }
-
-}
-
-inline void Skin::Read(Value& pJSON_Object, Asset& pAsset_Root)
-{
-    if (Value* name = FindMember(pJSON_Object, "name")) {
-        this->name = name->GetString();
-    }
-
-    if(Value * ibm = FindUInt(pJSON_Object, "inverseBindMatrices")) {
-        this->inverseBindMatrices = pAsset_Root.accessors.Retrieve(ibm->GetUint());
-    }
-
-    if (Value* joints = FindArray(pJSON_Object, "joints")) {
-        for(unsigned int i = 0; i < joints->Size(); ++ i )
-        {
-            if (!(*joints)[i].IsUint()) continue;
-            Ref<Node> node = pAsset_Root.nodes.Retrieve((*joints)[i].GetUint());
-            if(node)
-                this->jointNames.push_back(node);
-        }
-    }
-    //todo: read in skeleten attribute?
-}
-#endif
 
 
 inline void Mesh::Read(Value& pJSON_Object, Asset& pAsset_Root)
@@ -1210,6 +1131,118 @@ inline void Scene::Read(Value& obj, Asset& r)
     }
 }
 
+#ifdef GVRF_ASSIMP
+
+inline void Animation::Read(Value& pJSON_Object, Asset& pAsset_Root)
+{
+    if (Value* samplers = FindArray(pJSON_Object, "samplers")) {
+        this->Samplers.resize(samplers->Size());
+
+        for(unsigned int i = 0; i < samplers->Size(); ++ i) {
+            Value& sampler = (*samplers)[i];
+            AnimSampler *samp = &(this->Samplers[i]);
+
+            //get the sampler index
+            samp->id = i;
+
+            //get the time stamps pointed to by the accessor
+            if(Value * input = FindUInt(sampler, "input")) {
+                samp->TIME = pAsset_Root.accessors.Retrieve(input->GetUint());
+            }
+
+            //get the string describing the interpolation type
+            ReadMember(sampler, "interpolation", samp->interpolation );
+
+            //get the buffer pointing to the animation attribute values over each of the time stamps
+            if(Value * output = FindUInt(sampler, "output")) {
+                samp->output = pAsset_Root.accessors.Retrieve(output->GetUint());
+            }
+        }
+    }
+
+    if (Value* channels = FindArray(pJSON_Object, "channels"))
+    {
+
+        this->Channels.resize(channels->Size());
+        for(unsigned int i = 0; i < channels->Size(); ++i)
+        {
+            Value& channel = (*channels)[i];
+            AnimChannel *animChannel = &(this->Channels[i]);
+
+            //get sampler index
+            ReadMember(channel, "sampler", animChannel->sampler );
+
+            if (Value* target_attrbs = FindObject(channel, "target")) {
+
+                if (Value* nodeIdx = FindUInt(*target_attrbs, "node")) {
+                    animChannel->target.node = pAsset_Root.nodes.Retrieve((*nodeIdx).GetUint());
+                }
+
+                if (Value* pathVal = FindString(*target_attrbs, "path")) {
+                    animChannel->target.path =(*pathVal).GetString();
+                }
+            }
+        }
+    }
+}
+#else
+inline void Animation::Read(Value& pJSON_Object, Asset& pAsset_Root)
+{
+    if (Value* samplers = FindArray(pJSON_Object, "samplers")) {
+        this->Samplers.resize(samplers->Size());
+
+        for(unsigned int i = 0; i < samplers->Size(); ++ i) {
+            Value& sampler = (*samplers)[i];
+            AnimSampler *samp = &(this->Samplers[i]);
+
+            //get the sampler index
+            samp->id = i;
+
+            //get the time stamps pointed to by the accessor
+            if(Value * input = FindUInt(sampler, "input")) {
+                samp->TIME = pAsset_Root.accessors.Retrieve(input->GetUint());
+            }
+
+            //get the string describing the interpolation type
+            ReadMember(sampler, "interpolation", samp->interpolation );
+
+            //get the buffer pointing to the animation attribute values over each of the time stamps
+            if(Value * output = FindUInt(sampler, "output")) {
+                samp->output = pAsset_Root.accessors.Retrieve(output->GetUint());
+            }
+        }
+    }
+
+
+    if (Value* channels = FindArray(pJSON_Object, "channels"))
+    {
+
+        this->Channels.resize(channels->Size());
+        for(unsigned int i = 0; i < channels->Size(); ++i)
+        {
+            Value& channel = (*channels)[i];
+            AnimChannel *animChannel = &(this->Channels[i]);
+
+            //get sampler index
+            ReadMember(channel, "sampler", animChannel->sampler );
+
+            if (Value* target_attrbs = FindObject(channel, "target")) {
+
+                if (Value* nodeIdx = FindUInt(*target_attrbs, "node")) {
+                    animChannel->target.node = pAsset_Root.nodes.Retrieve((*nodeIdx).GetUint());
+                }
+
+                if (Value* pathVal = FindString(*target_attrbs, "path")) {
+                    animChannel->target.path =(*pathVal).GetString();
+                }
+            }
+        }
+    }
+}
+
+#endif
+
+
 inline void Skin::Read(Value& obj, Asset& r)
 {
     if (Value* matrices = FindUInt(obj, "inverseBindMatrices")) {
@@ -1223,65 +1256,6 @@ inline void Skin::Read(Value& obj, Asset& r)
             if (node) {
                 this->jointNames.push_back(node);
             }
-        }
-    }
-}
-
-inline void Animation::Read(Value& obj, Asset& r)
-{
-    if (Value* samplers = FindArray(obj, "samplers")) {
-        for (unsigned i = 0; i < samplers->Size(); ++i) {
-            Value& sampler = (*samplers)[i];
-
-            Sampler s;
-            if (Value* input = FindUInt(sampler, "input")) {
-                s.input = r.accessors.Retrieve(input->GetUint());
-            }
-            if (Value* output = FindUInt(sampler, "output")) {
-                s.output = r.accessors.Retrieve(output->GetUint());
-            }
-            s.interpolation = Interpolation_LINEAR;
-            if (Value* interpolation = FindString(sampler, "interpolation")) {
-                const std::string interp = interpolation->GetString();
-                if (interp == "LINEAR") {
-                  s.interpolation = Interpolation_LINEAR;
-                } else if (interp == "STEP") {
-                  s.interpolation = Interpolation_STEP;
-                } else if (interp == "CUBICSPLINE") {
-                  s.interpolation = Interpolation_CUBICSPLINE;
-                }
-            }
-            this->samplers.push_back(s);
-        }
-    }
-
-    if (Value* channels = FindArray(obj, "channels")) {
-        for (unsigned i = 0; i < channels->Size(); ++i) {
-            Value& channel = (*channels)[i];
-
-            Channel c;
-            if (Value* sampler = FindUInt(channel, "sampler")) {
-                c.sampler = sampler->GetUint();
-            }
-
-            if (Value* target = FindObject(channel, "target")) {
-                if (Value* node = FindUInt(*target, "node")) {
-                    c.target.node = r.nodes.Retrieve(node->GetUint());
-                }
-                if (Value* path = FindString(*target, "path")) {
-                    const std::string p = path->GetString();
-                    if (p == "translation") {
-                        c.target.path = AnimationPath_TRANSLATION;
-                    } else if (p == "rotation") {
-                        c.target.path = AnimationPath_ROTATION;
-                    } else if (p == "scale") {
-                        c.target.path = AnimationPath_SCALE;
-                    } else if (p == "weights") {
-                        c.target.path = AnimationPath_WEIGHTS;
-                    }
-                }
-            }
-            this->channels.push_back(c);
         }
     }
 }
