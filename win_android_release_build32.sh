@@ -1,9 +1,9 @@
 cmake --trace  -G "MinGW Makefiles" \
 	-DCMAKE_MAKE_PROGRAM=$NDKROOT/prebuilt/windows-x86_64/bin/make.exe \
+	-DANDROID_LINKER_FLAGS=-lz -Wl,--exclude-libs,libunwind.a  \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DANDROID_ABI=armeabi-v7a \
 	-DANDROID_NATIVE_API_LEVEL=android-22 \
-	-DANDROID_FORCE_ARM_BUILD=TRUE \
 	-DCMAKE_INSTALL_PREFIX=install \
 	-DANDROID_STL=c++_shared \
 	-DASSIMP_BUILD_TESTS=OFF \

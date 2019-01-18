@@ -7,7 +7,6 @@ $ANDROID_SDK/cmake/3.6.4111459/bin/cmake --trace -G "Unix Makefiles" \
 	-DASSIMP_BUILD_TESTS=OFF \
 	-DANDROID_ABI=armeabi-v7a \
 	-DANDROID_NATIVE_API_LEVEL=android-22 \
-	-DANDROID_FORCE_ARM_BUILD=TRUE \
 	-DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 \
 	-DCMAKE_INSTALL_PREFIX=install \
 	-DANDROID_STL=c++_shared \

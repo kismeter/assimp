@@ -931,12 +931,9 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
                     if (boneSet[j] == true)
                     {
                         //set the bone name as the node name
-                        bones[itr]->mName = boneNodes[j]->name.empty() ? boneNodes[j]->id
-                                                                       : boneNodes[j]->name;
-
+                        bones[itr]->mName = boneNodes[j]->name.empty() ? boneNodes[j]->id : boneNodes[j]->name;
                         //set the inverse bind matrix
                         bones[itr]->mOffsetMatrix = ibms[j].Inverse();
-
                         //set the vertex index+weight array
                         aiVertexWeight *vw = new aiVertexWeight[boneVec[j].size()];
                         for (unsigned int l = 0; l < boneVec[j].size(); ++l)
@@ -944,7 +941,6 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
 
                         bones[itr]->mNumWeights = boneVec[j].size();
                         bones[itr]->mWeights = vw;
-
                         ++itr;
                     }
                 }
