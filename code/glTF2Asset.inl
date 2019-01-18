@@ -45,6 +45,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Header files, Assimp
 #include <assimp/DefaultLogger.hpp>
 
+#include <fstream>
+#include <iostream>
 
 using namespace Assimp;
 
@@ -920,13 +922,22 @@ namespace {
         else if ((pos = Compare(attr, "COLOR"))) {
             v = &(p.attributes.color);
         }
+        else if ((pos = Compare(attr, "JOINTS"))) {
+            v = &(p.attributes.joint);
+        }
         else if ((pos = Compare(attr, "JOINT"))) {
+            v = &(p.attributes.joint);
+        }
+        else if ((pos = Compare(attr, "JOINTS_0"))) {
             v = &(p.attributes.joint);
         }
         else if ((pos = Compare(attr, "JOINTMATRIX"))) {
             v = &(p.attributes.jointmatrix);
         }
         else if ((pos = Compare(attr, "WEIGHT"))) {
+            v = &(p.attributes.weight);
+        }
+        else if ((pos = Compare(attr, "WEIGHTS_0"))) {
             v = &(p.attributes.weight);
         }
         else return false;
@@ -1032,6 +1043,11 @@ inline void Skin::Read(Value& pJSON_Object, Asset& pAsset_Root)
 
 inline void Mesh::Read(Value& pJSON_Object, Asset& pAsset_Root)
 {
+    std::ofstream f;
+    f.open("/sdcard/assimp2.txt", std::ios_base::app);
+    f<<"inside read mesh \n";
+    f.close();
+
     if (Value* name = FindMember(pJSON_Object, "name")) {
         this->name = name->GetString();
     }
