@@ -1,9 +1,9 @@
-cmake --trace  -G "MinGW Makefiles" \
+cmake -G "MinGW Makefiles" \
 	-DCMAKE_MAKE_PROGRAM=$NDKROOT/prebuilt/windows-x86_64/bin/make.exe \
 	-DCMAKE_BUILD_TYPE=Debug \
+	-DANDROID_LINKER_FLAGS=-lz -Wl,--exclude-libs,libunwind.a  \
 	-DANDROID_ABI=arm64-v8a \
-	-DANDROID_NATIVE_API_LEVEL=android-22 \
-	-DANDROID_FORCE_ARM_BUILD=TRUE \
+	-DANDROID_NATIVE_API_LEVEL=android-26 \
 	-DCMAKE_INSTALL_PREFIX=install \
 	-DANDROID_STL=c++_shared \
 	-DASSIMP_BUILD_TESTS=OFF \

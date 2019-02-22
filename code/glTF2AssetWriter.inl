@@ -110,13 +110,14 @@ namespace glTF2 {
 
     inline void Write(Value& obj, Animation& a, AssetWriter& w)
     {
+#ifndef GVRF_ASSIMP
         /****************** Channels *******************/
         Value channels;
         channels.SetArray();
-        channels.Reserve(unsigned(a.channels.size()), w.mAl);
+        channels.Reserve(unsigned(a.Channels.size()), w.mAl);
 
-        for (size_t i = 0; i < unsigned(a.channels.size()); ++i) {
-            Animation::Channel& c = a.channels[i];
+        for (size_t i = 0; i < unsigned(a.Channels.size()); ++i) {
+            Animation::AnimChannel& c = a.Channels[i];
             Value valChannel;
             valChannel.SetObject();
             {
@@ -125,21 +126,8 @@ namespace glTF2 {
                 Value valTarget;
                 valTarget.SetObject();
                 {
-                    valTarget.AddMember("node", c.target.node->index, w.mAl);
-                    switch (c.target.path) {
-                        case AnimationPath_TRANSLATION:
-                            valTarget.AddMember("path", "translation", w.mAl);
-                            break;
-                        case AnimationPath_ROTATION:
-                            valTarget.AddMember("path", "rotation", w.mAl);
-                            break;
-                        case AnimationPath_SCALE:
-                            valTarget.AddMember("path", "scale", w.mAl);
-                            break;
-                        case AnimationPath_WEIGHTS:
-                            valTarget.AddMember("path", "weights", w.mAl);
-                            break;
-                    }
+                    valTarget.AddMember("id", StringRef(c.target.node->id), w.mAl);
+                    valTarget.AddMember("path", c.target.path, w.mAl);
                 }
                 valChannel.AddMember("target", valTarget, w.mAl);
             }
@@ -147,32 +135,42 @@ namespace glTF2 {
         }
         obj.AddMember("channels", channels, w.mAl);
 
+        /****************** Parameters *******************/
+        Value valParameters;
+        valParameters.SetObject();
+        {
+            if (a.Parameters.TIME) {
+                valParameters.AddMember("TIME", StringRef(a.Parameters.TIME->id), w.mAl);
+            }
+            if (a.Parameters.rotation) {
+                valParameters.AddMember("rotation", StringRef(a.Parameters.rotation->id), w.mAl);
+            }
+            if (a.Parameters.scale) {
+                valParameters.AddMember("scale", StringRef(a.Parameters.scale->id), w.mAl);
+            }
+            if (a.Parameters.translation) {
+                valParameters.AddMember("translation", StringRef(a.Parameters.translation->id), w.mAl);
+            }
+        }
+        obj.AddMember("parameters", valParameters, w.mAl);
+
         /****************** Samplers *******************/
         Value valSamplers;
-        valSamplers.SetArray();
+        valSamplers.SetObject();
 
-        for (size_t i = 0; i < unsigned(a.samplers.size()); ++i) {
-            Animation::Sampler& s = a.samplers[i];
+        for (size_t i = 0; i < unsigned(a.Samplers.size()); ++i) {
+            Animation::AnimSampler& s = a.Samplers[i];
             Value valSampler;
             valSampler.SetObject();
             {
-                valSampler.AddMember("input", s.input->index, w.mAl);
-                switch (s.interpolation) {
-                    case Interpolation_LINEAR:
-                        valSampler.AddMember("path", "LINEAR", w.mAl);
-                        break;
-                    case Interpolation_STEP:
-                        valSampler.AddMember("path", "STEP", w.mAl);
-                        break;
-                    case Interpolation_CUBICSPLINE:
-                        valSampler.AddMember("path", "CUBICSPLINE", w.mAl);
-                        break;
-                }
-                valSampler.AddMember("output", s.output->index, w.mAl);
+                valSampler.AddMember("input", s.input, w.mAl);
+                valSampler.AddMember("interpolation", s.interpolation, w.mAl);
+                valSampler.AddMember("output", s.output, w.mAl);
             }
-            valSamplers.PushBack(valSampler, w.mAl);
+            valSamplers.AddMember(StringRef(s.id), valSampler, w.mAl);
         }
         obj.AddMember("samplers", valSamplers, w.mAl);
+#endif
     }
 
     inline void Write(Value& obj, Buffer& b, AssetWriter& w)

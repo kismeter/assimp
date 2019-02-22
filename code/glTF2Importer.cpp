@@ -385,6 +385,7 @@ static inline bool CheckValidFacesIndices(aiFace* faces, unsigned nFaces, unsign
 }
 #endif // ASSIMP_BUILD_DEBUG
 
+typedef aiMesh* MeshPtr;
 
 void glTF2Importer::ImportMeshes(glTF2::Asset& r)
 {
@@ -484,97 +485,75 @@ void glTF2Importer::ImportMeshes(glTF2::Asset& r)
                     values[i].y = 1 - values[i].y; // Flip Y coords
                 }
             }
-#ifdef GVRF_ASSIMP
             std::vector<Mesh::Primitive::Target>& targets = prim.targets;
-            if (targets.size() > 0) {
+            if (targets.size() > 0)
+            {
                 aim->mNumAnimMeshes = targets.size();
                 aim->mAnimMeshes = new aiAnimMesh*[aim->mNumAnimMeshes];
-                for (size_t i = 0; i < targets.size(); i++) {
+                for (size_t i = 0; i < targets.size(); i++)
+                {
                     aim->mAnimMeshes[i] = aiCreateAnimMesh(aim);
                     aiAnimMesh& aiAnimMesh = *(aim->mAnimMeshes[i]);
-                    Mesh::Primitive::Target& target = targets[i];
+                    Mesh::Primitive::Target &target = targets[i];
 
-                    if (target.position.size() > 0) {
+                    if (target.position.size() > 0)
+                    {
                         aiVector3D *positionDiff = nullptr;
-                        if (target.position[0]->ExtractData(positionDiff)) {
+                        if (target.position[0]->ExtractData(positionDiff))
+                        {
                             for (unsigned int vertexId = 0;
-                                 vertexId < aim->mNumVertices; vertexId++) {
+                                 vertexId < aim->mNumVertices;
+                                 vertexId++)
+                            {
                                 aiAnimMesh.mVertices[vertexId] += positionDiff[vertexId];
                             }
                             delete[] positionDiff;
                         }
                     }
-                    if (target.normal.size() > 0) {
+                    if (target.normal.size() > 0)
+                    {
                         aiVector3D *normalDiff = nullptr;
-                        if (target.normal[0]->ExtractData(normalDiff)) {
+                        if (target.normal[0]->ExtractData(normalDiff))
+                        {
                             for (unsigned int vertexId = 0;
-                                 vertexId < aim->mNumVertices; vertexId++) {
+                                 vertexId < aim->mNumVertices;
+                                 vertexId++)
+                            {
                                 aiAnimMesh.mNormals[vertexId] += normalDiff[vertexId];
                             }
                             delete[] normalDiff;
                         }
                     }
-                    if (target.tangent.size() > 0) {
+                    if (target.tangent.size() > 0)
+                    {
                         Tangent *tangent = nullptr;
                         attr.tangent[0]->ExtractData(tangent);
                         aiVector3D *tangentDiff = nullptr;
-                        if (target.tangent[0]->ExtractData(tangentDiff)) {
+                        if (target.tangent[0]->ExtractData(tangentDiff))
+                        {
                             for (unsigned int vertexId = 0;
-                                 vertexId < aim->mNumVertices; ++vertexId) {
+                                 vertexId < aim->mNumVertices;
+                                 ++vertexId)
+                            {
                                 tangent[vertexId].xyz += tangentDiff[vertexId];
                                 aiAnimMesh.mTangents[vertexId] = tangent[vertexId].xyz;
-                                aiAnimMesh.mBitangents[vertexId] =
-                                    (aiAnimMesh.mNormals[vertexId] ^ tangent[vertexId].xyz) *
-                                    tangent[vertexId].w;
+                                aiAnimMesh.mBitangents[vertexId] = (aiAnimMesh.mNormals[vertexId] ^
+                                    tangent[vertexId].xyz) * tangent[vertexId].w;
                             }
-#else
-            std::vector<Mesh::Primitive::Target>& targets = prim.targets;
-            if (targets.size() > 0) {
-                aim->mNumAnimMeshes = (unsigned int)targets.size();
-                aim->mAnimMeshes = new aiAnimMesh*[aim->mNumAnimMeshes];
-                for (size_t i = 0; i < targets.size(); i++) {
-                    aim->mAnimMeshes[i] = aiCreateAnimMesh(aim);
-                    aiAnimMesh& aiAnimMesh = *(aim->mAnimMeshes[i]);
-                    Mesh::Primitive::Target& target = targets[i];
-
-                    if (target.position.size() > 0) {
-                        aiVector3D *positionDiff = nullptr;
-                        target.position[0]->ExtractData(positionDiff);
-                        for(unsigned int vertexId = 0; vertexId < aim->mNumVertices; vertexId++) {
-                            aiAnimMesh.mVertices[vertexId] += positionDiff[vertexId];
+                            delete[] tangent;
+                            delete[] tangentDiff;
                         }
-                        delete [] positionDiff;
                     }
-                    if (target.normal.size() > 0) {
-                        aiVector3D *normalDiff = nullptr;
-                        target.normal[0]->ExtractData(normalDiff);
-                        for(unsigned int vertexId = 0; vertexId < aim->mNumVertices; vertexId++) {
-                            aiAnimMesh.mNormals[vertexId] += normalDiff[vertexId];
-                        }
-                        delete [] normalDiff;
-                    }
-                    if (target.tangent.size() > 0) {
-                        Tangent *tangent = nullptr;
-                        attr.tangent[0]->ExtractData(tangent);
-
-                        aiVector3D *tangentDiff = nullptr;
-                        target.tangent[0]->ExtractData(tangentDiff);
-
-                        for (unsigned int vertexId = 0; vertexId < aim->mNumVertices; ++vertexId) {
-                            tangent[vertexId].xyz += tangentDiff[vertexId];
-                            aiAnimMesh.mTangents[vertexId] = tangent[vertexId].xyz;
-                            aiAnimMesh.mBitangents[vertexId] = (aiAnimMesh.mNormals[vertexId] ^ tangent[vertexId].xyz) * tangent[vertexId].w;
-                        }
-					#endif
-                        delete [] tangent;
-                        delete [] tangentDiff;
-                    }
-                    if (mesh.weights.size() > i) {
+                    if (mesh.weights.size() > i)
+                    {
                         aiAnimMesh.mWeight = mesh.weights[i];
+                    }
+                    else
+                    {
+                        aiAnimMesh.mWeight = 0;
                     }
                 }
             }
-
 
             aiFace* faces = 0;
             unsigned int nFaces = 0;
@@ -746,8 +725,14 @@ void glTF2Importer::ImportMeshes(glTF2::Asset& r)
     }
 
     meshOffsets.push_back(k);
-
-    CopyVector(meshes, mScene->mMeshes, mScene->mNumMeshes);
+    MeshPtr* meshptrs = new MeshPtr[meshes.size()];
+    int i = 0;
+    for (auto iter = meshes.begin(); iter != meshes.end(); ++iter)
+    {
+        meshptrs[i++] = *iter;
+    }
+    mScene->mMeshes = meshptrs;
+    mScene->mNumMeshes = i;
 }
 
 void glTF2Importer::ImportCameras(glTF2::Asset& r)
@@ -858,11 +843,10 @@ static void BuildVertexWeightMapping(Mesh::Primitive& primitive, std::vector<std
 aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& meshOffsets, glTF2::Ref<glTF2::Node>& ptr)
 {
     Node& node = *ptr;
-
     std::string nameOrId = node.name.empty() ? node.id : node.name;
-
     aiNode* ainode = new aiNode(nameOrId);
 
+    ainode->mNumChildren = 0;
     if (!node.children.empty()) {
         ainode->mNumChildren = unsigned(node.children.size());
         ainode->mChildren = new aiNode*[ainode->mNumChildren];
@@ -875,20 +859,30 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
     }
 
     GetNodeTransform(ainode->mTransformation, node);
-
-    if (!node.meshes.empty()) {
-        // GLTF files contain at most 1 mesh per node.
-        assert(node.meshes.size() == 1);
-        int mesh_idx = node.meshes[0].GetIndex();
-        int count = meshOffsets[mesh_idx + 1] - meshOffsets[mesh_idx];
-
+    if (!node.meshes.empty())
+    {
+        int count = 0;
+        for (size_t i = 0; i < node.meshes.size(); ++i)
+        {
+            int idx = node.meshes[i].GetIndex();
+            count += meshOffsets[idx + 1] - meshOffsets[idx];
+        }
         ainode->mNumMeshes = count;
         ainode->mMeshes = new unsigned int[count];
 
-	#ifdef GVRF_ASSIMP
-        //every node can have only one mesh
-        Mesh& mesh = *(node.meshes[0]);
-        if(node.skin)
+        int k = 0;
+        for (size_t i = 0; i < node.meshes.size(); ++i)
+        {
+            int idx = node.meshes[i].GetIndex();
+            for (unsigned int j = meshOffsets[idx]; j < meshOffsets[idx + 1]; ++j, ++k)
+            {
+                ainode->mMeshes[k] = j;
+            }
+        }
+
+#ifdef GVRF_ASSIMP
+        Mesh &mesh = *(node.meshes[0]);
+        if (node.skin)
         {
             int totalBones = node.skin->jointNames.size();
 
@@ -896,9 +890,8 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
             std::vector<Ref<Node>> boneNodes = node.skin->jointNames;
 
             //get the inverse bind matrices
-            aiMatrix4x4 * ibms = new aiMatrix4x4[totalBones];
+            aiMatrix4x4* ibms = new aiMatrix4x4[totalBones];
             node.skin->inverseBindMatrices->ExtractData(ibms);
-
 
             //hash to determine the bones used by a mesh primitive
             std::vector<bool> boneSet(totalBones, false);
@@ -908,18 +901,17 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
 
                 //2d vector of bones. each bone in this vector has a vector of aiVertexWeights
                 //each aiVertexWeight contains a pair of vertex index and the weight associated to this bone.
-                std::vector<std::vector<aiVertexWeight>> boneVec(totalBones, std::vector<aiVertexWeight>());
+                std::vector<std::vector<aiVertexWeight>> boneVec(totalBones,
+                                                                 std::vector<aiVertexWeight>());
 
-                //extract joints and weights and vertex indices fromt the mesh data
-                Joint * jointAttr = nullptr;
-                Weight * weightAttr = nullptr;
-
-                Mesh::Primitive& prim = mesh.primitives[i];
-                Mesh::Primitive::Attributes& attr = prim.attributes;
+                //extract joints and weights and vertex indices from the mesh data
+                Joint *jointAttr = nullptr;
+                Weight *weightAttr = nullptr;
+                Mesh::Primitive &prim = mesh.primitives[i];
+                Mesh::Primitive::Attributes &attr = prim.attributes;
 
                 if (attr.joint.size() > 0 && attr.joint[0])
                     attr.joint[0]->ExtractData(jointAttr);
-
                 if (attr.weight.size() > 0 && attr.weight[0])
                     attr.weight[0]->ExtractData(weightAttr);
 
@@ -929,9 +921,9 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
                 //and the weight of that bone for that vertex.
                 for (unsigned int k = 0; k < attr.joint[0]->count; ++k)
                 {
-                    for(unsigned int l = 0; l < 4; ++ l)
+                    for (unsigned int l = 0; l < 4; ++l)
                     {
-                        if(weightAttr[k].weightinfo[l] > 0.001 )
+                        if (weightAttr[k].weightinfo[l] > 0.001)
                         {
                             unsigned int boneIdx = static_cast<int>(jointAttr[k].jointinfo[l]);
 
@@ -940,43 +932,39 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
                                 numBones++;
                                 boneSet[boneIdx] = true;
                             }
-
-                            aiVertexWeight vw (k, weightAttr[k].weightinfo[l]);
+                            aiVertexWeight vw(k, weightAttr[k].weightinfo[l]);
                             boneVec[boneIdx].push_back(vw);
                         }
                     }
                 }
 
-                aiBone ** bones = new aiBone* [numBones];
-
-                for(unsigned int j = 0; j < numBones; ++j )
-                    bones[j] = new aiBone();
-
+                aiBone **bones = new aiBone *[numBones];
                 unsigned int itr = 0;
-                for(unsigned int j = 0; j < totalBones; ++ j)
+
+                for (unsigned int j = 0; j < numBones; ++j)
+                    bones[j] = new aiBone();
+                for (unsigned int j = 0; j < totalBones; ++j)
                 {
                     if (boneSet[j] == true)
                     {
                         //set the bone name as the node name
                         bones[itr]->mName = boneNodes[j]->name.empty() ? boneNodes[j]->id : boneNodes[j]->name;
-
                         //set the inverse bind matrix
-                        bones[itr]->mOffsetMatrix = ibms[j].Inverse();
-
+                        bones[itr]->mOffsetMatrix = ibms[j].Transpose();
                         //set the vertex index+weight array
-                        aiVertexWeight * vw = new aiVertexWeight[boneVec[j].size()];
+                        aiVertexWeight *vw = new aiVertexWeight[boneVec[j].size()];
                         for (unsigned int l = 0; l < boneVec[j].size(); ++l)
                             vw[l] = boneVec[j][l];
 
                         bones[itr]->mNumWeights = boneVec[j].size();
                         bones[itr]->mWeights = vw;
-
                         ++itr;
                     }
                 }
-
-                pScene->mMeshes[ainode->mMeshes[i]]->mBones = bones;
-                pScene->mMeshes[ainode->mMeshes[i]]->mNumBones = numBones;
+                int meshid = ainode->mMeshes[i];
+                aiMesh* m = pScene->mMeshes[meshid];
+                m->mBones = bones;
+                m->mNumBones = numBones;
 
                 // clear/delete structures
                 for (unsigned int k = 0; k < totalBones; ++k)
@@ -992,13 +980,15 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
 
             delete[] ibms;
             boneNodes.clear();
-		}			
-	#else
-        if (node.skin) {
-            for (int primitiveNo = 0; primitiveNo < count; ++primitiveNo) {
-                aiMesh* mesh = pScene->mMeshes[meshOffsets[mesh_idx]+primitiveNo];
+        }
+#else
+        if (node.skin)
+        {
+            for (int primitiveNo = 0; primitiveNo < count; ++primitiveNo)
+            {
+                aiMesh *mesh = pScene->mMeshes[meshOffsets[mesh_idx] + primitiveNo];
                 mesh->mNumBones = node.skin->jointNames.size();
-                mesh->mBones = new aiBone*[mesh->mNumBones];
+                mesh->mBones = new aiBone *[mesh->mNumBones];
 
                 // GLTF and Assimp choose to store bone weights differently.
                 // GLTF has each vertex specify which bones influence the vertex.
@@ -1012,46 +1002,53 @@ aiNode* ImportNode(aiScene* pScene, glTF2::Asset& r, std::vector<unsigned int>& 
                 std::vector<std::vector<aiVertexWeight>> weighting(mesh->mNumBones);
                 BuildVertexWeightMapping(node.meshes[0]->primitives[primitiveNo], weighting);
 
-                for (size_t i = 0; i < mesh->mNumBones; ++i) {
+                for (size_t i = 0; i < mesh->mNumBones; ++i)
+                {
                     aiBone* bone = new aiBone();
 
                     Ref<Node> joint = node.skin->jointNames[i];
-                    if (!joint->name.empty()) {
-                      bone->mName = joint->name;
-                    } else {
-                      // Assimp expects each bone to have a unique name.
-                      static const std::string kDefaultName = "bone_";
-                      char postfix[10] = {0};
-                      ASSIMP_itoa10(postfix, i);
-                      bone->mName = (kDefaultName + postfix);
+                    if (!joint->name.empty())
+                    {
+                        bone->mName = joint->name;
+                    }
+                    else
+                    {
+                        // Assimp expects each bone to have a unique name.
+                        static const std::string kDefaultName = "bone_";
+                        char postfix[10] = {0};
+                        ASSIMP_itoa10(postfix, i);
+                        bone->mName = (kDefaultName + postfix);
                     }
                     GetNodeTransform(bone->mOffsetMatrix, *joint);
 
                     std::vector<aiVertexWeight>& weights = weighting[i];
 
                     bone->mNumWeights = weights.size();
-                    if (bone->mNumWeights > 0) {
-                      bone->mWeights = new aiVertexWeight[bone->mNumWeights];
-                      memcpy(bone->mWeights, weights.data(), bone->mNumWeights * sizeof(aiVertexWeight));
-                    } else {
-                      // Assimp expects all bones to have at least 1 weight.
-                      bone->mWeights = new aiVertexWeight[1];
-                      bone->mNumWeights = 1;
-                      bone->mWeights->mVertexId = 0;
-                      bone->mWeights->mWeight = 0.f;
+                    if (bone->mNumWeights > 0)
+                    {
+                        bone->mWeights = new aiVertexWeight[bone->mNumWeights];
+                        memcpy(bone->mWeights, weights.data(),
+                               bone->mNumWeights * sizeof(aiVertexWeight));
+                    }
+                    else
+                    {
+                        // Assimp expects all bones to have at least 1 weight.
+                        bone->mWeights = new aiVertexWeight[1];
+                        bone->mNumWeights = 1;
+                        bone->mWeights->mVertexId = 0;
+                        bone->mWeights->mWeight = 0.f;
                     }
                     mesh->mBones[i] = bone;
                 }
             }
         }
-
         int k = 0;
-        for (unsigned int j = meshOffsets[mesh_idx]; j < meshOffsets[mesh_idx + 1]; ++j, ++k) {
+        for (unsigned int j = meshOffsets[mesh_idx]; j < meshOffsets[mesh_idx + 1]; ++j, ++k)
+        {
             ainode->mMeshes[k] = j;
         }
-	#endif
+#endif
     }
-
     if (node.camera) {
         pScene->mCameras[node.camera.GetIndex()]->mName = ainode->mName;
     }
@@ -1092,23 +1089,21 @@ void glTF2Importer::ImportAnimations(glTF2::Asset& r)
     std::vector<aiAnimation *> anims;
     anims.resize(r.animations.Size());
     mScene->mNumAnimations = r.animations.Size();
-    int numNodeAnimChannels = 0; int numMorphAnimChannels = 0;
+    int numNodeAnimChannels = 0;
+    int numMorphAnimChannels = 0;
     double animDuration = 0.0;
 
-    for(size_t i = 0; i < r.animations.Size(); i ++ )
+    for (size_t i = 0; i < r.animations.Size(); i++)
     {
         Animation animRead = r.animations[i];
-
         std::vector<aiNodeAnim *> animChannels;
         std::vector<aiMeshMorphAnim *> meshAnimChannels;
 
-        for(size_t j = 0; j < animRead.Channels.size(); j ++ )
+        for (size_t j = 0; j < animRead.Channels.size(); j++)
         {
-            aiNodeAnim * aiChannel;
-            aiMeshMorphAnim * aiMorphChannel;
+            aiNodeAnim* aiChannel;
+            aiMeshMorphAnim* aiMorphChannel;
             int numMorphTargets = 0;
-
-
             Animation::AnimChannel channelRead = animRead.Channels[j];
             Animation::AnimSampler samplerRead = animRead.Samplers[channelRead.sampler];
 
@@ -1120,15 +1115,13 @@ void glTF2Importer::ImportAnimations(glTF2::Asset& r)
             std::string keyType = targetRead.path;
             int keyCount = samplerRead.TIME->count;
 
-            aiVector3D * positionKeys = nullptr;
-            aiVector3D * scaleKeys = nullptr;
-            aiQuaternion * rotKeys = nullptr;
-            float * blendkeys = nullptr;
-
+            aiVector3D* positionKeys = nullptr;
+            aiVector3D* scaleKeys = nullptr;
+            aiQuaternion* rotKeys = nullptr;
+            float* blendkeys = nullptr;
 
             //based on keytype extract data from accessor
-
-            if(keyType == "weights")
+            if (keyType == "weights")
             {
                 aiMorphChannel = new aiMeshMorphAnim();
                 aiMorphChannel->mNumKeys = keyCount;
@@ -1141,21 +1134,19 @@ void glTF2Importer::ImportAnimations(glTF2::Asset& r)
             {
                 aiChannel = new aiNodeAnim();
                 numNodeAnimChannels++;
-
-                if(keyType == "translation")
+                if (keyType == "translation")
                 {
                     aiChannel->mPositionKeys = new aiVectorKey[keyCount];
                     aiChannel->mNumPositionKeys = keyCount;
                     samplerRead.output->ExtractData(positionKeys);
                 }
-                else if(keyType == "rotation")
+                else if (keyType == "rotation")
                 {
                     aiChannel->mRotationKeys = new aiQuatKey[keyCount];
                     aiChannel->mNumRotationKeys = keyCount;
                     samplerRead.output->ExtractData(rotKeys);
-
                 }
-                else if(keyType == "scale")
+                else if (keyType == "scale")
                 {
                     aiChannel->mScalingKeys = new aiVectorKey[keyCount];
                     aiChannel->mNumScalingKeys = keyCount;
@@ -1163,155 +1154,135 @@ void glTF2Importer::ImportAnimations(glTF2::Asset& r)
                 }
             }
 
-
             //update channels based on input/output data
             double firstTimeStamp = 0;
-            for(size_t k = 0; k < keyCount; k ++ )
+            for (size_t k = 0; k < keyCount; k++)
             {
                 double currTimeStamp = timeStamps.GetValue<float>(k);
-                if(k == 0)
+                if (k == 0)
                     firstTimeStamp = currTimeStamp;
-
-                if(k == keyCount - 1)
+                if (k == keyCount - 1)
                     animDuration = std::max(currTimeStamp - firstTimeStamp, animDuration);
 
-                if(keyType == "translation")
+                if (keyType == "translation")
                 {
                     aiChannel->mPositionKeys[k].mTime = currTimeStamp;
                     aiChannel->mPositionKeys[k].mValue = positionKeys[k];
-
                 }
-                else if(keyType == "scale")
+                else if (keyType == "scale")
                 {
                     aiChannel->mScalingKeys[k].mTime = currTimeStamp;
                     aiChannel->mScalingKeys[k].mValue = scaleKeys[k];
                 }
-                else if(keyType == "rotation")
+                else if (keyType == "rotation")
                 {
                     aiChannel->mRotationKeys[k].mTime = currTimeStamp;
                     aiChannel->mRotationKeys[k].mValue = rotKeys[k];
-
                 }
-
-
                 /**
                  * Extracted buffer is an array of floats. We need to segment
                  * every 'numMorphTargets' floats. This segment is out key for
                  * the channel.
                  **/
-
-                else if(keyType == "weights")
+                else if (keyType == "weights")
                 {
+                    double* blendWeights = new double[numMorphTargets];
 
                     aiMorphChannel->mKeys[k].mTime = currTimeStamp;
-
-                    double * blendWeights = new double[numMorphTargets];
-                    for(int itr = 0; itr < numMorphTargets ; itr ++ )
+                    for (int itr = 0; itr < numMorphTargets; itr++)
                         blendWeights[itr] = blendkeys[itr + numMorphTargets * k];
                     aiMorphChannel->mKeys[k].mWeights = blendWeights;
                     aiMorphChannel->mKeys[k].mNumValuesAndWeights = numMorphTargets;
                 }
             }
-
-
-            if(keyType == "weights")
+            if (keyType == "weights")
             {
-                aiMorphChannel->mName = channelRead.target.node->name.empty() ? channelRead.target.node->id : channelRead.target.node->name;
+                aiMorphChannel->mName = channelRead.target.node->name.empty() ? channelRead.target
+                    .node->id : channelRead.target.node->name;
                 meshAnimChannels.push_back(aiMorphChannel);
             }
             else
             {
-                aiChannel->mNodeName = channelRead.target.node->name.empty() ? channelRead.target.node->id : channelRead.target.node->name;
+                aiChannel->mNodeName = channelRead.target.node->name.empty() ?
+                    channelRead.target.node->id : channelRead.target.node->name;
                 aiChannel->mPreState = aiAnimBehaviour_DEFAULT;
                 aiChannel->mPostState = aiAnimBehaviour_DEFAULT;
-
                 animChannels.push_back(aiChannel);
             }
-
-
             delete positionKeys;
             delete scaleKeys;
             delete rotKeys;
             delete blendkeys;
-
         }
-
-        //condense all channels belonging to one node into one channel
-
-
-        //using comparator for map which doesnt care about ordering.
-        //should replace by unordered_map when using c++11.
-        std::map< aiString, aiNodeAnim* , mycomp> uniqueNodes;
-
-        for(size_t j = 0; j < animChannels.size(); ++j)
+        //
+        // condense all channels belonging to one node into one channel
+        // using comparator for map which doesnt care about ordering.
+        // should replace by unordered_map when using c++11.
+        //
+        std::map<aiString, aiNodeAnim *, mycomp> uniqueNodes;
+        for (size_t j = 0; j < animChannels.size(); ++j)
         {
             aiString currNodeName = animChannels[j]->mNodeName;
-            std::map< aiString, aiNodeAnim* >::iterator it = uniqueNodes.find(currNodeName);
+            std::map<aiString, aiNodeAnim *>::iterator it = uniqueNodes.find(currNodeName);
 
-            if(it==uniqueNodes.end()) {
-                uniqueNodes.insert(std::pair< aiString, aiNodeAnim* >(currNodeName, animChannels[j]));
+            if (it == uniqueNodes.end())
+            {
+                uniqueNodes.insert(std::pair<aiString, aiNodeAnim*>(currNodeName, animChannels[j]));
             }
-            else{
-                if(animChannels[j]->mNumPositionKeys > 0)
+            else
+            {
+                if (animChannels[j]->mNumPositionKeys > 0)
                 {
                     it->second->mPositionKeys = animChannels[j]->mPositionKeys;
                     it->second->mNumPositionKeys = animChannels[j]->mNumPositionKeys;
                 }
-                else if(animChannels[j]->mNumScalingKeys > 0)
+                else if (animChannels[j]->mNumScalingKeys > 0)
                 {
                     it->second->mScalingKeys = animChannels[j]->mScalingKeys;
                     it->second->mNumScalingKeys = animChannels[j]->mNumScalingKeys;
                 }
-                else if(animChannels[j]->mNumRotationKeys > 0)
+                else if (animChannels[j]->mNumRotationKeys > 0)
                 {
                     it->second->mRotationKeys = animChannels[j]->mRotationKeys;
                     it->second->mNumRotationKeys = animChannels[j]->mNumRotationKeys;
                 }
             }
         }
-
-
         anims[i] = new aiAnimation();
         anims[i]->mDuration = animDuration;
         anims[i]->mNumChannels = uniqueNodes.size();
         anims[i]->mNumMorphMeshChannels = numMorphAnimChannels;
 
-        aiNodeAnim **channels = new aiNodeAnim* [numNodeAnimChannels];
-        aiMeshMorphAnim ** morphChannels = new aiMeshMorphAnim* [numMorphAnimChannels];
+        aiNodeAnim** channels = new aiNodeAnim *[numNodeAnimChannels];
+        aiMeshMorphAnim** morphChannels = new aiMeshMorphAnim *[numMorphAnimChannels];
 
         // for(int itr = 0; itr < anims[i]->mNumChannels; ++itr)
         //     channels[itr] = animChannels[itr];
-
         int itr = 0;
-        for(std::map<aiString, aiNodeAnim*>::iterator it ; it != uniqueNodes.end(); ++it)
+        for (std::map<aiString, aiNodeAnim *>::iterator it = uniqueNodes.begin();
+             it != uniqueNodes.end(); ++it)
         {
             channels[itr] = it->second;
             ++itr;
         }
-
-        for(int itr = 0; itr < anims[i]->mNumMorphMeshChannels; ++itr)
+        for (int itr = 0; itr < anims[i]->mNumMorphMeshChannels; ++itr)
             morphChannels[itr] = meshAnimChannels[itr];
-
-
         anims[i]->mChannels = channels;
         anims[i]->mMorphMeshChannels = morphChannels;
-
         anims[i]->mTicksPerSecond = 1.0;
-
         animChannels.clear();
         meshAnimChannels.clear();
         uniqueNodes.clear();
     }
 
-    aiAnimation ** animations = new aiAnimation* [mScene->mNumAnimations];
-    for(int itr = 0; itr < mScene->mNumAnimations; ++itr)
+    aiAnimation **animations = new aiAnimation *[mScene->mNumAnimations];
+    for (int itr = 0; itr < mScene->mNumAnimations; ++itr)
         animations[itr] = anims[itr];
-
     mScene->mAnimations = animations;
-
     anims.clear();
-
 }
+
+
 #else
 struct AnimationSamplers {
     AnimationSamplers() : translation(nullptr), rotation(nullptr), scale(nullptr) {}
@@ -1531,6 +1502,7 @@ void glTF2Importer::ImportEmbeddedTextures(glTF2::Asset& r)
     }
 }
 
+
 void glTF2Importer::InternReadFile(const std::string& pFile, aiScene* pScene, IOSystem* pIOHandler) {
 
     this->mScene = pScene;
@@ -1554,6 +1526,13 @@ void glTF2Importer::InternReadFile(const std::string& pFile, aiScene* pScene, IO
 
     ImportAnimations(asset);
 
+
+    // TODO: it does not split the loaded vertices, should it?
+    //pScene->mFlags |= AI_SCENE_FLAGS_NON_VERBOSE_FORMAT;
+
+    //GVRf: not splitting vertices after import
+    // MakeVerboseFormatProcess process;
+    // process.Execute(pScene);
     if (pScene->mNumMeshes == 0) {
         pScene->mFlags |= AI_SCENE_FLAGS_INCOMPLETE;
     }

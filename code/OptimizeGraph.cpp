@@ -343,7 +343,8 @@ void OptimizeGraphProcess::Execute( aiScene* pScene) {
 void OptimizeGraphProcess::FindInstancedMeshes (aiNode* pNode)
 {
     for (unsigned int i = 0; i < pNode->mNumMeshes;++i) {
-        ++meshes[pNode->mMeshes[i]];
+        int ofs = pNode->mMeshes[i];
+        ++(meshes[ofs]);
     }
 
     for (unsigned int i = 0; i < pNode->mNumChildren; ++i)

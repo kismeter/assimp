@@ -52,7 +52,7 @@ endif()
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)
 
-get_filename_component(ASSIMP_ROOT_DIR "D:/projects/android/assimp/INSTALL" REALPATH)
+get_filename_component(ASSIMP_ROOT_DIR "/home/nola.donato/projects/assimp/install" REALPATH)
 set( ASSIMP_CXX_FLAGS ) # dynamically linked library
 set( ASSIMP_LINK_FLAGS "" )
 set( ASSIMP_LIBRARY_DIRS "${ASSIMP_ROOT_DIR}/lib")
