@@ -10,6 +10,28 @@ Make sure you have a working git-installation. Open a command prompt and clone t
 git clone https://github.com/assimp/assimp.git
 ```
 
+# Build instruction for Android
+First you have to install android SDK and NDK, export the environment as below for example (on MacOS)
+```
+export ANDROID_NDK_PATH=/Users/yourname/Library/Android/sdk/ndk-bundle
+export ANDROID_SDK_PATH=/Users/yourname/Library/Android/sdk 
+export CMAKE_TOOLCHAIN=/Users/yourname/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake
+export ANDROID_NDK_TOOLCHAIN=/Users/yourname/Library/Android/sdk/android-toolchain
+export PATH=$PATH:/Users/yourname/Library/Android/sdk/android-toolchain/bin
+```
+Then make director for example
+```
+mkdir buildAndroid_arm-v8a_release
+```
+navigate to the new folder
+```
+cd buildAndroid_arm-v8a_release
+```
+now build assimp
+```
+cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN -DCMAKE_INSTALL_PREFIX=/assimp -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=android-16 -DANDROID_FORCE_ARM_BUILD=TRUE -DANDROID_STL=c++_shared -DANDROID_NDK=$ANDROID_NDK_PATH -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-Wno-c++11-narrowing -DANDROID_TOOLCHAIN=clang -DASSIMP_BUILD_TESTS=OFF -DASSIMP_NO_EXPORT=FALSE -DASSIMP_BUILD_ASSIMP_TOOLS=FALSE -DASSIMP_BUILD_SAMPLES=FALSE -DASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT=TRUE ..
+```
+
 # Build instructions for Windows with Visual-Studio
 
 First you have to install Visual-Studio on your windows-system. You can get the Community-Version for free here: https://visualstudio.microsoft.com/de/downloads/
