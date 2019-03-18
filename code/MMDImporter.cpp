@@ -51,8 +51,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assimp/ai_assert.h>
 #include <assimp/scene.h>
 #include <fstream>
+#include <streambuf>
 #include <iomanip>
 #include <memory>
+
+struct membuf : std::streambuf
+{
+    membuf(char* begin, char* end) {
+        this->setg(begin, begin, end);
+    }
+};
 
 static const aiImporterDesc desc = {"MMD Importer",
                                     "",
@@ -102,6 +110,40 @@ bool MMDImporter::CanRead(const std::string &pFile, IOSystem *pIOHandler,
 const aiImporterDesc *MMDImporter::GetInfo() const { return &desc; }
 
 // ------------------------------------------------------------------------------------------------
+//  MMD import Alpha implementation fix Android asset IOSystem
+#if 1
+void MMDImporter::InternReadFile(const std::string &file, aiScene *pScene,
+                                 IOSystem * pIOHandler) {
+    //Read file into memory
+    static const std::string mode = "rb";
+    std::unique_ptr<IOStream> fileStream( pIOHandler->Open( file, mode));
+    if ( !fileStream.get() ) {
+        throw DeadlyImportError("Failed to open MMD file " + file + ".");
+    }
+    
+    // Get the file-size and validate it, throwing an exception when fails
+    size_t fileSize = fileStream->FileSize();
+    if( fileSize < sizeof(pmx::PmxModel)) {
+        throw DeadlyImportError(file + " is too small.");
+    }
+    
+    std::vector<char> contents;
+    contents.resize(fileStream->FileSize()+1);
+    fileStream->Read( &*contents.begin(), 1, contents.size()-1 );
+    contents[ contents.size() - 1 ] = 0;
+    //const char* const begin = &*contents.begin();
+    
+    membuf sbuf(&*contents.begin(), &*contents.end());
+    std::istream in(&sbuf);
+    pmx::PmxModel model;
+    model.Read(&in);
+    
+    CreateDataFromImport(&model, pScene);
+}
+#endif
+
+
+#if 0
 //  MMD import implementation
 void MMDImporter::InternReadFile(const std::string &file, aiScene *pScene,
                                  IOSystem * /*pIOHandler*/) {
@@ -127,6 +169,7 @@ void MMDImporter::InternReadFile(const std::string &file, aiScene *pScene,
 
   CreateDataFromImport(&model, pScene);
 }
+#endif
 
 // ------------------------------------------------------------------------------------------------
 void MMDImporter::CreateDataFromImport(const pmx::PmxModel *pModel,
