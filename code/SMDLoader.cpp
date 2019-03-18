@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
+Copyright (c) 2006-2019, assimp team
 
 All rights reserved.
 
@@ -486,7 +486,7 @@ void SMDImporter::CreateOutputAnimations(const std::string &pFile, IOSystem* pIO
     if (bLoadAnimationList) {
         GetAnimationFileList(pFile, pIOHandler, animFileList);
     }
-    int animCount = animFileList.size() + 1;
+    int animCount = static_cast<int>( animFileList.size() + 1u );
     pScene->mNumAnimations = 1;
     pScene->mAnimations = new aiAnimation*[animCount];
     memset(pScene->mAnimations, 0, sizeof(aiAnimation*)*animCount);
@@ -510,7 +510,7 @@ void SMDImporter::CreateOutputAnimation(int index, const std::string &name) {
         anim->mName.Set(name.c_str());
     }
     anim->mDuration = dLengthOfAnim;
-    anim->mNumChannels = asBones.size();
+    anim->mNumChannels = static_cast<unsigned int>( asBones.size() );
     anim->mTicksPerSecond = 25.0; // FIXME: is this correct?
 
     aiNodeAnim** pp = anim->mChannels = new aiNodeAnim*[anim->mNumChannels];

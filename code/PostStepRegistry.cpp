@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
+Copyright (c) 2006-2019, assimp team
 
 
 
@@ -173,6 +173,9 @@ void GetPostProcessingStepInstanceList(std::vector< BaseProcess* >& out)
 #ifndef ASSIMP_BUILD_NO_TRANSFORMTEXCOORDS_PROCESS
     out.push_back( new TextureTransformStep());
 #endif
+#if (!defined ASSIMP_BUILD_NO_GLOBALSCALE_PROCESS)
+    out.push_back( new ScaleProcess());
+#endif
 #if (!defined ASSIMP_BUILD_NO_PRETRANSFORMVERTICES_PROCESS)
     out.push_back( new PretransformVertices());
 #endif
@@ -208,9 +211,6 @@ void GetPostProcessingStepInstanceList(std::vector< BaseProcess* >& out)
 #endif
 #if (!defined ASSIMP_BUILD_NO_GENFACENORMALS_PROCESS)
     out.push_back( new GenFaceNormalsProcess());
-#endif
-#if (!defined ASSIMP_BUILD_NO_GLOBALSCALE_PROCESS)
-    out.push_back( new ScaleProcess());
 #endif
     // .........................................................................
     // DON'T change the order of these five ..

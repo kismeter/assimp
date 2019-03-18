@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
+Copyright (c) 2006-2019, assimp team
 
 
 
@@ -708,7 +708,7 @@ void AssbinImporter::InternReadFile( const std::string& pFile, aiScene* pScene, 
 
         unsigned char * uncompressedData = new unsigned char[ uncompressedSize ];
 
-        int res = uncompress( uncompressedData, &uncompressedSize, compressedData, len );
+        int res = uncompress( uncompressedData, &uncompressedSize, compressedData, (uLong) len );
         if(res != Z_OK)
         {
             delete [] uncompressedData;

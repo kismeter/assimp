@@ -1,6 +1,6 @@
 # Open Asset Import Library (assimp)
 # ----------------------------------------------------------------------
-# Copyright (c) 2006-2018, assimp team
+# Copyright (c) 2006-2019, assimp team
 
 # All rights reserved.
 #
@@ -157,7 +157,7 @@ SET (PROJECT_VERSION "${ASSIMP_VERSION}")
 
 SET( ASSIMP_PACKAGE_VERSION "0" CACHE STRING "the package-specific version used for uploading the sources" )
 
-# Enable C++1 globally
+# Enable C++11 support globally
 set_property( GLOBAL PROPERTY CXX_STANDARD 11 )
 
 IF(NOT IGNORE_GIT_HASH)
@@ -198,7 +198,7 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/include/assimp/config.h
 )
 
-INCLUDE_DIRECTORIES(
+INCLUDE_DIRECTORIES( BEFORE
   ./
   include
   ${CMAKE_CURRENT_BINARY_DIR}

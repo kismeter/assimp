@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
+Copyright (c) 2006-2019, assimp team
 
 
 
@@ -160,7 +160,7 @@ inline void ValidateDSProcess::DoValidationEx(T** parray, unsigned int size,
         {
             if (!parray[i])
             {
-                ReportError("aiScene::%s[%i] is NULL (aiScene::%s is %i)",
+                ReportError("aiScene::%s[%u] is NULL (aiScene::%s is %u)",
                     firstName,i,secondName,size);
             }
             Validate(parray[i]);
@@ -170,8 +170,8 @@ inline void ValidateDSProcess::DoValidationEx(T** parray, unsigned int size,
             {
                 if (parray[i]->mName == parray[a]->mName)
                 {
-                    this->ReportError("aiScene::%s[%i] has the same name as "
-                        "aiScene::%s[%i]",firstName, i,secondName, a);
+                	ReportError("aiScene::%s[%u] has the same name as "
+                        "aiScene::%s[%u]",firstName, i,secondName, a);
                 }
             }
         }
@@ -180,23 +180,21 @@ inline void ValidateDSProcess::DoValidationEx(T** parray, unsigned int size,
 
 // ------------------------------------------------------------------------------------------------
 template <typename T>
-inline void ValidateDSProcess::DoValidationWithNameCheck(T** array,
-    unsigned int size, const char* firstName,
-    const char* secondName)
-{
+inline
+void ValidateDSProcess::DoValidationWithNameCheck(T** array, unsigned int size, const char* firstName, const char* secondName) {
     // validate all entries
     DoValidationEx(array,size,firstName,secondName);
 
-    for (unsigned int i = 0; i < size;++i)
-    {
+    for (unsigned int i = 0; i < size;++i) {
         int res = HasNameMatch(array[i]->mName,mScene->mRootNode);
-        if (!res)   {
+        if (0 == res)   {
+            const std::string name = static_cast<char*>(array[i]->mName.data);
             ReportError("aiScene::%s[%i] has no corresponding node in the scene graph (%s)",
-                firstName,i,array[i]->mName.data);
-        }
-        else if (1 != res)  {
+                firstName,i, name.c_str());
+        } else if (1 != res)  {
+            const std::string name = static_cast<char*>(array[i]->mName.data);
             ReportError("aiScene::%s[%i]: there are more than one nodes with %s as name",
-                firstName,i,array[i]->mName.data);
+                firstName,i, name.c_str());
         }
     }
 }
@@ -332,6 +330,7 @@ void ValidateDSProcess::Validate( const aiMesh* pMesh)
             {
             case 0:
                 ReportError("aiMesh::mFaces[%i].mNumIndices is 0",i);
+                break;
             case 1:
                 if (0 == (pMesh->mPrimitiveTypes & aiPrimitiveType_POINT))
                 {
@@ -424,7 +423,9 @@ void ValidateDSProcess::Validate( const aiMesh* pMesh)
         if (!abRefList[i])b = true;
     }
     abRefList.clear();
-    if (b)ReportWarning("There are unreferenced vertices");
+    if (b) {
+    	ReportWarning("There are unreferenced vertices");
+    }
 
     // texture channel 2 may not be set if channel 1 is zero ...
     {
@@ -559,7 +560,9 @@ void ValidateDSProcess::Validate( const aiAnimation* pAnimation)
             Validate(pAnimation, pAnimation->mChannels[i]);
         }
     }
-    else ReportError("aiAnimation::mNumChannels is 0. At least one node animation channel must be there.");
+    else {
+    	ReportError("aiAnimation::mNumChannels is 0. At least one node animation channel must be there.");
+    }
 
     // Animation duration is allowed to be zero in cases where the anim contains only a single key frame.
     // if (!pAnimation->mDuration)this->ReportError("aiAnimation::mDuration is zero");
@@ -579,15 +582,16 @@ void ValidateDSProcess::SearchForInvalidTextures(const aiMaterial* pMaterial,
 
     int iNumIndices = 0;
     int iIndex = -1;
-    for (unsigned int i = 0; i < pMaterial->mNumProperties;++i)
-    {
-        aiMaterialProperty* prop = pMaterial->mProperties[i];
-        if (!::strcmp(prop->mKey.data,"$tex.file") && prop->mSemantic == type)  {
+    for (unsigned int i = 0; i < pMaterial->mNumProperties;++i) {
+        aiMaterialProperty* prop = pMaterial->mProperties[ i ];
+        ai_assert(nullptr != prop);
+        if ( !::strcmp(prop->mKey.data,"$tex.file") && prop->mSemantic == static_cast<unsigned int>(type))  {
             iIndex = std::max(iIndex, (int) prop->mIndex);
             ++iNumIndices;
 
-            if (aiPTI_String != prop->mType)
-                ReportError("Material property %s is expected to be a string",prop->mKey.data);
+            if (aiPTI_String != prop->mType) {
+                ReportError("Material property %s is expected to be a string", prop->mKey.data);
+            }
         }
     }
     if (iIndex +1 != iNumIndices)   {
@@ -699,7 +703,7 @@ void ValidateDSProcess::Validate( const aiMaterial* pMaterial)
             if (prop->mDataLength < 5 || prop->mDataLength < 4 + (*reinterpret_cast<uint32_t*>(prop->mData)) + 1)   {
                 ReportError("aiMaterial::mProperties[%i].mDataLength is "
                     "too small to contain a string (%i, needed: %i)",
-                    i,prop->mDataLength,sizeof(aiString));
+                    i,prop->mDataLength,static_cast<int>(sizeof(aiString)));
             }
             if(prop->mData[prop->mDataLength-1]) {
                 ReportError("Missing null-terminator in string material property");
@@ -710,14 +714,14 @@ void ValidateDSProcess::Validate( const aiMaterial* pMaterial)
             if (prop->mDataLength < sizeof(float))  {
                 ReportError("aiMaterial::mProperties[%i].mDataLength is "
                     "too small to contain a float (%i, needed: %i)",
-                    i,prop->mDataLength,sizeof(float));
+                    i,prop->mDataLength, static_cast<int>(sizeof(float)));
             }
         }
         else if (aiPTI_Integer == prop->mType)  {
             if (prop->mDataLength < sizeof(int))    {
                 ReportError("aiMaterial::mProperties[%i].mDataLength is "
                     "too small to contain an integer (%i, needed: %i)",
-                    i,prop->mDataLength,sizeof(int));
+                    i,prop->mDataLength, static_cast<int>(sizeof(int)));
             }
         }
         // TODO: check whether there is a key with an unknown name ...
@@ -775,8 +779,10 @@ void ValidateDSProcess::Validate( const aiTexture* pTexture)
     }
     if (pTexture->mHeight)
     {
-        if (!pTexture->mWidth)ReportError("aiTexture::mWidth is zero "
-            "(aiTexture::mHeight is %i, uncompressed texture)",pTexture->mHeight);
+        if (!pTexture->mWidth){
+        	ReportError("aiTexture::mWidth is zero (aiTexture::mHeight is %i, uncompressed texture)",
+        			pTexture->mHeight);
+        }
     }
     else
     {
@@ -807,15 +813,15 @@ void ValidateDSProcess::Validate( const aiAnimation* pAnimation,
 {
     Validate(&pNodeAnim->mNodeName);
 
-    if (!pNodeAnim->mNumPositionKeys && !pNodeAnim->mScalingKeys && !pNodeAnim->mNumRotationKeys)
+    if (!pNodeAnim->mNumPositionKeys && !pNodeAnim->mScalingKeys && !pNodeAnim->mNumRotationKeys) {
         ReportError("Empty node animation channel");
-
+    }
     // otherwise check whether one of the keys exceeds the total duration of the animation
     if (pNodeAnim->mNumPositionKeys)
     {
         if (!pNodeAnim->mPositionKeys)
         {
-            this->ReportError("aiNodeAnim::mPositionKeys is NULL (aiNodeAnim::mNumPositionKeys is %i)",
+        	ReportError("aiNodeAnim::mPositionKeys is NULL (aiNodeAnim::mNumPositionKeys is %i)",
                 pNodeAnim->mNumPositionKeys);
         }
         double dLast = -10e10;
@@ -846,7 +852,7 @@ void ValidateDSProcess::Validate( const aiAnimation* pAnimation,
     {
         if (!pNodeAnim->mRotationKeys)
         {
-            this->ReportError("aiNodeAnim::mRotationKeys is NULL (aiNodeAnim::mNumRotationKeys is %i)",
+            ReportError("aiNodeAnim::mRotationKeys is NULL (aiNodeAnim::mNumRotationKeys is %i)",
                 pNodeAnim->mNumRotationKeys);
         }
         double dLast = -10e10;
@@ -907,19 +913,23 @@ void ValidateDSProcess::Validate( const aiAnimation* pAnimation,
 // ------------------------------------------------------------------------------------------------
 void ValidateDSProcess::Validate( const aiNode* pNode)
 {
-    if (!pNode)ReportError("A node of the scenegraph is NULL");
-    if (pNode != mScene->mRootNode && !pNode->mParent)
-        this->ReportError("A node has no valid parent (aiNode::mParent is NULL)");
-
+    if (!pNode) {
+    	ReportError("A node of the scenegraph is NULL");
+    }
+    // Validate node name string first so that it's safe to use in below expressions
     this->Validate(&pNode->mName);
+    const char* nodeName = (&pNode->mName)->C_Str();
+    if (pNode != mScene->mRootNode && !pNode->mParent){
+        ReportError("Non-root node %s lacks a valid parent (aiNode::mParent is NULL) ", nodeName);
+    }
 
     // validate all meshes
     if (pNode->mNumMeshes)
     {
         if (!pNode->mMeshes)
         {
-            ReportError("aiNode::mMeshes is NULL (aiNode::mNumMeshes is %i)",
-                pNode->mNumMeshes);
+            ReportError("aiNode::mMeshes is NULL for node %s (aiNode::mNumMeshes is %i)",
+            		  nodeName, pNode->mNumMeshes);
         }
         std::vector<bool> abHadMesh;
         abHadMesh.resize(mScene->mNumMeshes,false);
@@ -927,13 +937,13 @@ void ValidateDSProcess::Validate( const aiNode* pNode)
         {
             if (pNode->mMeshes[i] >= mScene->mNumMeshes)
             {
-                ReportError("aiNode::mMeshes[%i] is out of range (maximum is %i)",
-                    pNode->mMeshes[i],mScene->mNumMeshes-1);
+                ReportError("aiNode::mMeshes[%i] is out of range for node %s (maximum is %i)",
+                    pNode->mMeshes[i], nodeName, mScene->mNumMeshes-1);
             }
             if (abHadMesh[pNode->mMeshes[i]])
             {
-                ReportError("aiNode::mMeshes[%i] is already referenced by this node (value: %i)",
-                    i,pNode->mMeshes[i]);
+                ReportError("aiNode::mMeshes[%i] is already referenced by this node %s (value: %i)",
+                    i, nodeName, pNode->mMeshes[i]);
             }
             abHadMesh[pNode->mMeshes[i]] = true;
         }
@@ -941,8 +951,8 @@ void ValidateDSProcess::Validate( const aiNode* pNode)
     if (pNode->mNumChildren)
     {
         if (!pNode->mChildren)  {
-            ReportError("aiNode::mChildren is NULL (aiNode::mNumChildren is %i)",
-                pNode->mNumChildren);
+            ReportError("aiNode::mChildren is NULL for node %s (aiNode::mNumChildren is %i)",
+            		nodeName, pNode->mNumChildren);
         }
         for (unsigned int i = 0; i < pNode->mNumChildren;++i)   {
             Validate(pNode->mChildren[i]);
@@ -955,7 +965,7 @@ void ValidateDSProcess::Validate( const aiString* pString)
 {
     if (pString->length > MAXLEN)
     {
-        this->ReportError("aiString::length is too large (%i, maximum is %i)",
+        ReportError("aiString::length is too large (%lu, maximum is %lu)",
             pString->length,MAXLEN);
     }
     const char* sz = pString->data;
@@ -963,12 +973,14 @@ void ValidateDSProcess::Validate( const aiString* pString)
     {
         if ('\0' == *sz)
         {
-            if (pString->length != (unsigned int)(sz-pString->data))
+            if (pString->length != (unsigned int)(sz-pString->data)) {
                 ReportError("aiString::data is invalid: the terminal zero is at a wrong offset");
+            }
             break;
         }
-        else if (sz >= &pString->data[MAXLEN])
+        else if (sz >= &pString->data[MAXLEN]) {
             ReportError("aiString::data is invalid. There is no terminal character");
+        }
         ++sz;
     }
 }
