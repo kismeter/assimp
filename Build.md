@@ -27,10 +27,15 @@ navigate to the new folder
 ```
 cd buildAndroid_arm-v8a_release
 ```
-now build assimp
+now use cmake generate makefile
 ```
 cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN -DCMAKE_INSTALL_PREFIX=/assimp -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=android-16 -DANDROID_FORCE_ARM_BUILD=TRUE -DANDROID_STL=c++_shared -DANDROID_NDK=$ANDROID_NDK_PATH -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-Wno-c++11-narrowing -DANDROID_TOOLCHAIN=clang -DASSIMP_BUILD_TESTS=OFF -DASSIMP_NO_EXPORT=FALSE -DASSIMP_BUILD_ASSIMP_TOOLS=FALSE -DASSIMP_BUILD_SAMPLES=FALSE -DASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT=TRUE ..
 ```
+build assimp
+```
+make -j8
+```
+
 
 # Build instructions for Windows with Visual-Studio
 
